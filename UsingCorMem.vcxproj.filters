@@ -72,6 +72,12 @@
     <ClInclude Include="BootRepairBin.hpp">
       <Filter>BYOVD</Filter>
     </ClInclude>
+    <ClInclude Include="va2pa.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SuperFetch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">

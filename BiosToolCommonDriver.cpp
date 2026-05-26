@@ -2,6 +2,7 @@
 #include "FileUtils.hpp"
 #include "BiosToolCommonDriverBin.hpp"
 #include "Log.hpp"
+#include "va2pa.h"
 
 
 BOOLEAN BiosToolCommonDriver::Initialize() noexcept
@@ -358,10 +359,11 @@ BiosToolCommonDriver::VirtualToPhysical(PVOID VirtualAddress)
 								sizeof(Request),
 								&dwBytesReturned,
 								nullptr);
-	if (!bRet)
+	if (!bRet || 0 == Request.PhysicalAddress)
 	{
 		LOG("[-] Failed to translate virtual address to physical address. Error code: " << GetLastError());
-		return nullptr;
+		
+		return Va2Pa(VirtualAddress);
 	}
 
 	return Request.PhysicalAddress;

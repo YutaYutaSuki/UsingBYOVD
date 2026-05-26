@@ -1,6 +1,7 @@
 #include "CorMem.h"
 #include "FileUtils.hpp"
 #include "CorMemBin.hpp"
+#include "va2pa.h"
 #include "Log.hpp"
 
 BOOLEAN CorMem::Initialize() noexcept
@@ -321,10 +322,10 @@ CorMem::VirtualToPhysical(PVOID VirtualAddress)
 								sizeof(pPhysicalAddress),
 								&dwBytesReturned, 
 								nullptr);
-	if (!bRet)
+	if (!bRet || 0 == pPhysicalAddress)
 	{
-		LOG("[-] Failed to translate virtual address to physical address. Error code: %lu") << GetLastError();
-		return nullptr;
+		LOG("[-] Failed to translate virtual address to physical address. Error code: %lu" << GetLastError());
+		return Va2Pa(VirtualAddress);
 	}
 	
 	return pPhysicalAddress;
