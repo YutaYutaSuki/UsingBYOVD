@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include <string>
 
 
 namespace DriverLoader
@@ -76,6 +77,11 @@ namespace DriverLoader
 	BOOLEAN
 	MapperDriver(
 		const PUCHAR DriverData,
+		AllocationMode Mode = AllocationMode::AllocatePool);
+
+	BOOLEAN
+	MapperDriver(
+		const std::string_view DriverPath,
 		AllocationMode Mode = AllocationMode::AllocatePool);
 }
 

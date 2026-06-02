@@ -331,3 +331,23 @@ DriverLoader::MapperDriver(
 
 	return bReturn;
 }
+
+BOOLEAN 
+DriverLoader::MapperDriver(
+	const std::string_view DriverPath, 
+	AllocationMode Mode /*= AllocationMode::AllocatePool*/)
+{
+	std::ifstream readFile(DriverPath, std::ios::binary | std::ios::in);
+	if (!readFile.is_open())
+	{
+		LOG("Read mapping driver file failed!!!");
+		return FALSE;
+	}
+
+	std::stringstream readBuffer{};
+	readBuffer << readBuffer.rdbuf();
+
+	auto buffer = readBuffer.str();
+
+	return MapperDriver(reinterpret_cast<PUCHAR>(buffer.data()), Mode);
+}
