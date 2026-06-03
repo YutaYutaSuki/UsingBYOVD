@@ -24,7 +24,7 @@
     <ProjectGuid>{19037D5B-6296-D37D-F1B4-BF5A5F7A764C}</ProjectGuid>
     <RootNamespace>UsingCorMem</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
-    <ProjectName>DriverLoader</ProjectName>
+    <ProjectName>UsingBYOVD</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -2,18 +2,18 @@
 
 Privilege escalation was successfully achieved using the CorMem.sys(Physical Memory Read/Write) vulnerable driver, as shown in the figure below.
 
-![image](./ScreenShot_2026-05-15_194342_118.png)
+![image](./pics/ScreenShot_2026-05-15_194342_118.png)
 
 
 Add BiosToolCommonDriver.sys
 
 Privilege escalation
-![image](./ScreenShot_2026-05-17_143556_434.png)
+![image](./pics/ScreenShot_2026-05-17_143556_434.png)
 
 
 PPL
 
-![image](./ScreenShot_2026-05-17_143717_220.png)
+![image](./pics/ScreenShot_2026-05-17_143717_220.png)
 
 
 Kill Process
@@ -21,9 +21,9 @@ Kill Process
 DriverLoader.exe <kill processid>
 ```
 开启核晶的*60
-![image](./360hejing_2026-05-26_160354_877.png)
+![image](./pics/360hejing_2026-05-26_160354_877.png)
 
-![image](./kill%20360_2026-05-26_160557_313.png)
+![image](./pics/kill%20360_2026-05-26_160557_313.png)
 
 * 新增了VirtualToPhysical的函数
 **代码来源于redteamfortress（https://github.com/redteamfortress）的项目PPLShade（https://github.com/redteamfortress/PPLShade）**
@@ -32,6 +32,15 @@ DriverLoader.exe <kill processid>
 
 
 Loader mapping driver
-![image](./LoaderMappingDriver_2026-06-01_123521_640.png)
+![image](./pics/LoaderMappingDriver_2026-06-01_123521_640.png)
 
 **代码已经更新**
+
+
+
+add commandline 
+
+
+![image](./pics/mapping%20with%20cmdline.png)
+
+![image](./pics/Privilege%20escaption%20with%20cmdline.png)
