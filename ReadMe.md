@@ -44,3 +44,15 @@ add commandline
 ![image](./pics/mapping%20with%20cmdline.png)
 
 ![image](./pics/Privilege%20escaption%20with%20cmdline.png)
+
+
+dmp lsass (不支持Windows 11新版本)
+
+build
+![image](./pics/Tset%20build_2026-06-05_192042_837.png)
+
+remove process protect 
+![image](./pics/remove%20lsass%20protection_2026-06-05_190608_025.png)
+
+dmp file
+![image](./pics/dmp%20file_2026-06-05_191338_890.png)
