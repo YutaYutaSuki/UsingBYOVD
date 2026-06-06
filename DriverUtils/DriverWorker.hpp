@@ -2,6 +2,7 @@
 #include "BiosToolCommonDriver.h"
 #include "CorMem.h"
 #include "BootRepair.h"
+#include "PGRHostControl.h"
 
 
 namespace DriverWorker

@@ -4,13 +4,13 @@
 auto
 DriverWorker::InitializeDriver() -> BOOLEAN
 {
-	return g_BiosToolCommonDriver->Initialize();
+	return g_PGRHostControl->Initialize();
 }
 
 auto
 DriverWorker::UninitializeDriver() -> VOID
 {
-	g_BiosToolCommonDriver->Uninitialize();
+	g_PGRHostControl->Uninitialize();
 }
 
 auto 
@@ -19,7 +19,7 @@ DriverWorker::Read(
 	PVOID ReadBuffer, 
 	ULONG Size) ->BOOLEAN
 {
-	return g_BiosToolCommonDriver->Read(VirtualAddress, ReadBuffer, Size);
+	return g_PGRHostControl->Read(VirtualAddress, ReadBuffer, Size);
 }
 
 auto 
@@ -28,7 +28,7 @@ DriverWorker::Write(
 	PVOID WriteBuffer,
 	ULONG Size) ->BOOLEAN
 {
-	return g_BiosToolCommonDriver->Write(VirtualAddress, WriteBuffer, Size);
+	return g_PGRHostControl->Write(VirtualAddress, WriteBuffer, Size);
 }
 
 auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN

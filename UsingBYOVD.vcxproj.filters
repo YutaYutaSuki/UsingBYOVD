@@ -90,6 +90,12 @@
     <ClInclude Include="Utils\Utils.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="BYOVD\PGRHostControl.h">
+      <Filter>BYOVD</Filter>
+    </ClInclude>
+    <ClInclude Include="BYOVD\PGRHostControlBin.hpp">
+      <Filter>BYOVD</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -130,6 +136,9 @@
     </ClCompile>
     <ClCompile Include="Utils\Utils.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="BYOVD\PGRHostControl.cpp">
+      <Filter>BYOVD</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -139,6 +139,8 @@
     <ClInclude Include="BYOVD\BootRepairBin.hpp" />
     <ClInclude Include="BYOVD\CorMem.h" />
     <ClInclude Include="BYOVD\CorMemBin.hpp" />
+    <ClInclude Include="BYOVD\PGRHostControl.h" />
+    <ClInclude Include="BYOVD\PGRHostControlBin.hpp" />
     <ClInclude Include="DriverUtils\DriverLoader.h" />
     <ClInclude Include="DriverUtils\DriverProvider.hpp" />
     <ClInclude Include="DriverUtils\DriverService.hpp" />
@@ -159,6 +161,7 @@
     <ClCompile Include="BYOVD\BiosToolCommonDriver.cpp" />
     <ClCompile Include="BYOVD\BootRepair.cpp" />
     <ClCompile Include="BYOVD\CorMem.cpp" />
+    <ClCompile Include="BYOVD\PGRHostControl.cpp" />
     <ClCompile Include="DriverUtils\DriverLoader.cpp" />
     <ClCompile Include="DriverUtils\DriverProvider.cpp" />
     <ClCompile Include="DriverUtils\DriverService.cpp" />
