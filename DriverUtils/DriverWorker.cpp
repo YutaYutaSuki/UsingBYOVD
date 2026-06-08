@@ -1,6 +1,8 @@
 #include "DriverWorker.hpp"
 #include "Log.hpp"
 
+static BOOLEAN g_bKiller{FALSE};
+
 auto
 DriverWorker::InitializeDriver() -> BOOLEAN
 {
@@ -31,7 +33,7 @@ DriverWorker::Write(
 	return g_PGRHostControl->Write(VirtualAddress, WriteBuffer, Size);
 }
 
-auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN
+auto DriverWorker::KillerInit()->BOOLEAN
 {
 	//auto bResut = g_BootRepair->Initialize();
 	//if (!bResut)
@@ -41,17 +43,8 @@ auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN
 	//else
 	//{
 	//	LOG("Start BootRepair Driver");
+	//  g_bKiller = TRUE;
 	//}
-
-	//if (Pid > 4)
-	//{
-	//	//LOG("Kill pid = ") << Pid << std::endl;;
-	//	bResut = g_BootRepair->KillProcess(Pid);
-
-	//}
-
-	//g_BootRepair->Uninitialize();
-	//return bResut;
 
 	auto bResut = g_GGProtect64->Initialize();
 	if (!bResut)
@@ -60,18 +53,55 @@ auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN
 	}
 	else
 	{
-		LOG("Start GGProtect64 Driver");
+		LOG("Start Killer Driver");
+		g_bKiller = TRUE;
+	}
+
+	return FALSE;
+}
+
+
+
+auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN
+{
+
+	//if (Pid > 4)
+	//{
+	//	//LOG("Kill pid = ") << Pid << std::endl;;
+	//	bResut = g_BootRepair->KillProcess(Pid);
+
+	//}
+
+	//return bResut;
+
+	auto bResult{ FALSE };
+
+	// check it again
+	if (!g_bKiller)
+	{
+		return FALSE;
 	}
 
 	if (Pid > 4)
 	{
 		//LOG("Kill pid = ") << Pid << std::endl;;
-		bResut = g_GGProtect64->KillProcess(Pid);
+		bResult = g_GGProtect64->KillProcess(Pid);
 
 	}
 
 	// unload will cause BSOD
 	// never call it like this
 	//g_GGProtect64->Uninitialize();
-	return bResut;
+	return bResult;
+}
+
+auto DriverWorker::KillUnInit()
+{
+	if (!g_bKiller)
+	{
+		return;
+	}
+	//g_GGProtect64->Uninitialize();
+
+	//g_BootRepair->Uninitialize();
 }

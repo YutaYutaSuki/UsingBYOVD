@@ -16,6 +16,10 @@ namespace DriverWorker
 
 	auto Write(PVOID VirtualAddress, PVOID WriteBuffer, ULONG Size)->BOOLEAN;
 
+	auto KillerInit()->BOOLEAN;
+
 	auto Kill(ULONG Pid)->BOOLEAN;
+
+	auto KillUnInit();
 }
 
