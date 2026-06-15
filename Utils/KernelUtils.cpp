@@ -27,7 +27,6 @@ typedef struct _RTL_PROCESS_MODULES
 } RTL_PROCESS_MODULES, * PRTL_PROCESS_MODULES;
 
 
-
 PVOID 
 KernelUtils::GetKernelModuleBase(const std::string& KernelModuleName) const
 {
@@ -37,10 +36,10 @@ KernelUtils::GetKernelModuleBase(const std::string& KernelModuleName) const
 	DWORD dwBufferSize{ 0 };
 
 	// Query System Module Information
-	status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
-									  nullptr,
-									  0,
-									  &dwBufferSize);
+	status = Utils::NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
+											 nullptr,
+											 0,
+											 &dwBufferSize);
 	while (status == STATUS_INFO_LENGTH_MISMATCH)
 	{
 		if (!pBuffer)
@@ -50,10 +49,10 @@ KernelUtils::GetKernelModuleBase(const std::string& KernelModuleName) const
 
 		pBuffer = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwBufferSize);
 
-		status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
-										  pBuffer,
-										  dwBufferSize,
-										  &dwBufferSize);
+		status = Utils::NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation,
+												 pBuffer,
+												 dwBufferSize,
+												 &dwBufferSize);
 	}
 	if (!NT_SUCCESS(status) || !pBuffer)
 	{
@@ -61,7 +60,6 @@ KernelUtils::GetKernelModuleBase(const std::string& KernelModuleName) const
 		{
 			HeapFree(GetProcessHeap(), 0, pBuffer);
 		}
-		LOG("NtQuerySystemInformation failed in line %d" << __LINE__);
 		return nullptr;
 	}
 
@@ -70,18 +68,12 @@ KernelUtils::GetKernelModuleBase(const std::string& KernelModuleName) const
 	const auto pModuleInfo = reinterpret_cast<PRTL_PROCESS_MODULES>(pBuffer);
 	for (auto i{ 0u }; i != pModuleInfo->NumberOfModules; ++i)
 	{
-		const auto pName = reinterpret_cast<char*>(pModuleInfo->Modules[i].FullPathName) + 
-												   pModuleInfo->Modules[i].OffsetToFileName;
+		const auto pName = reinterpret_cast<char*>(pModuleInfo->Modules[i].FullPathName) + pModuleInfo->Modules[i].OffsetToFileName;
 		if (0 == _stricmp(pName, KernelModuleName.c_str()))
 		{
 			pReturn = pModuleInfo->Modules[i].ImageBase;
 			break;
 		}
-	}
-
-	if (!pReturn)
-	{
-		LOG("Not found base of moduleName");
 	}
 
 	if (pBuffer)

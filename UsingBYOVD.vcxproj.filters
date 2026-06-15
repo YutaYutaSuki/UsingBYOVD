@@ -25,6 +25,9 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{b6a7d9f8-98d6-48f6-9efe-39d7bba61c94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Syscalls">
+      <UniqueIdentifier>{5d42286e-e0f8-401a-ac77-e75fac8843bc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Log.hpp">
@@ -111,6 +114,15 @@
     <ClInclude Include="DriverUtils\DriverSelector.hpp">
       <Filter>DriverUtils</Filter>
     </ClInclude>
+    <ClInclude Include="BYOVD\KslD.h">
+      <Filter>BYOVD</Filter>
+    </ClInclude>
+    <ClInclude Include="BYOVD\KslDBin.hpp">
+      <Filter>BYOVD</Filter>
+    </ClInclude>
+    <ClInclude Include="Syscalls\SCSyscalls.h">
+      <Filter>Syscalls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -161,6 +173,12 @@
     <ClCompile Include="BYOVD\ProcessCtr.cpp">
       <Filter>BYOVD</Filter>
     </ClCompile>
+    <ClCompile Include="BYOVD\KslD.cpp">
+      <Filter>BYOVD</Filter>
+    </ClCompile>
+    <ClCompile Include="Syscalls\SCSyscalls.c">
+      <Filter>Syscalls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DriverLoader.rc">
@@ -171,5 +189,10 @@
     <Image Include="BinaryEvil.ico">
       <Filter>资源文件</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="Syscalls\SCSyscall.asm">
+      <Filter>Syscalls</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

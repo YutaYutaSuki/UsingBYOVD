@@ -1,13 +1,11 @@
 #pragma once
 #include <windows.h>
 #include <string>
-#include "DriverProvider.hpp"
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
 
 class ProcessCtr final :
-	public DriverProvider<ProcessCtr>,
 	public Singleton<ProcessCtr>
 {
 	friend class Singleton<ProcessCtr>;

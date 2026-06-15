@@ -55,6 +55,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -108,11 +109,13 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>./;./Utils/;./DriverUtils/;./BYOVD/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;./Utils/;./DriverUtils/;./Syscalls/;./BYOVD/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -125,11 +128,13 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>./;./Utils/;./DriverUtils/;./BYOVD/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;./Utils/;./DriverUtils/;./Syscalls/;./BYOVD/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -141,6 +146,14 @@
     <ClInclude Include="BYOVD\CorMemBin.hpp" />
     <ClInclude Include="BYOVD\GGProtect64.h" />
     <ClInclude Include="BYOVD\GGProtect64Bin.hpp" />
+    <ClInclude Include="BYOVD\KslD.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="BYOVD\KslDBin.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="BYOVD\PGRHostControl.h" />
     <ClInclude Include="BYOVD\PGRHostControlBin.hpp" />
     <ClInclude Include="BYOVD\ProcessCtr.h" />
@@ -156,6 +169,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Singleton.hpp" />
     <ClInclude Include="SuperFetch.h" />
+    <ClInclude Include="Syscalls\SCSyscalls.h" />
     <ClInclude Include="Utils\FileUtils.hpp" />
     <ClInclude Include="Utils\KernelUtils.hpp" />
     <ClInclude Include="Utils\PEUtils.hpp" />
@@ -167,6 +181,10 @@
     <ClCompile Include="BYOVD\BootRepair.cpp" />
     <ClCompile Include="BYOVD\CorMem.cpp" />
     <ClCompile Include="BYOVD\GGProtect64.cpp" />
+    <ClCompile Include="BYOVD\KslD.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="BYOVD\PGRHostControl.cpp" />
     <ClCompile Include="BYOVD\ProcessCtr.cpp" />
     <ClCompile Include="DriverUtils\DriverLoader.cpp" />
@@ -175,6 +193,10 @@
     <ClCompile Include="DriverUtils\DriverWorker.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Singleton.cpp" />
+    <ClCompile Include="Syscalls\SCSyscalls.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Utils\FileUtils.cpp" />
     <ClCompile Include="Utils\KernelUtils.cpp" />
     <ClCompile Include="Utils\PEUtils.cpp" />
@@ -186,7 +208,15 @@
   <ItemGroup>
     <Image Include="BinaryEvil.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="Syscalls\SCSyscall.asm">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </MASM>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

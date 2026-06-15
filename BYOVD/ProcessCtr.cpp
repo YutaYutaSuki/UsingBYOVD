@@ -1,6 +1,7 @@
 #include "ProcessCtr.h"
 #include "FileUtils.hpp"
 #include "ProcessCtrBin.hpp"
+#include "Log.hpp"
 
 BOOLEAN
 ProcessCtr::Initialize() noexcept

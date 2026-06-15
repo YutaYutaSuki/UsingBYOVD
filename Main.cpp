@@ -261,8 +261,14 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		return 1;
 	}
 
-	BOOLEAN bResult{ FALSE };
-	NTSTATUS status = Utils::RtlAdjustPrivilege(20, TRUE, FALSE, &bResult);
+	if (!Utils::InitSyscalls())
+	{
+		LOG("[-] Failed to initialize syscalls");
+		return 1;
+	}
+
+
+	NTSTATUS status = Utils::RtlAdjustPrivilege(20);
 	if (!NT_SUCCESS(status))
 	{
 		LOG("[-] Failed to adjust privilege. Error code: 0x" << std::hex << status << " line = " << __LINE__);

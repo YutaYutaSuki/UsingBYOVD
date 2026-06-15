@@ -7,8 +7,6 @@
 #include <memory>
 #include "Utils.hpp"
 
-using namespace Utils;
-
 namespace spf
 {
 	template<typename T, typename E = spf_error>
@@ -350,14 +348,12 @@ namespace spf
 	{
 		BOOLEAN old = FALSE;
 
-		if (!NT_SUCCESS(RtlAdjustPrivilege(
-			SE_PROF_SINGLE_PROCESS_PRIVILEGE, TRUE, FALSE, &old)))
+		if (!NT_SUCCESS(Utils::RtlAdjustPrivilege(SE_PROF_SINGLE_PROCESS_PRIVILEGE)))
 		{
 			return false;
 		}
 
-		if (!NT_SUCCESS(RtlAdjustPrivilege(
-			SE_DEBUG_PRIVILEGE, TRUE, FALSE, &old)))
+		if (!NT_SUCCESS(Utils::RtlAdjustPrivilege(SE_DEBUG_PRIVILEGE)))
 		{
 			return false;
 		}
@@ -446,8 +442,10 @@ namespace spf
 		  .Length = length
 		};
 
-		return NtQuerySystemInformation(SystemSuperfetchInformation,
-										&superfetch_info, sizeof(superfetch_info), return_length);
+		return Utils::NtQuerySystemInformation(SystemSuperfetchInformation,
+											   &superfetch_info,
+											   sizeof(superfetch_info),
+											   return_length);
 	}
 
 } // spf

@@ -5,6 +5,7 @@
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
+#include "BiosToolCommonDriverBin.hpp"
 
 class BiosToolCommonDriver final : 
 	public DriverProvider<BiosToolCommonDriver>,
@@ -21,8 +22,14 @@ public:
 	}	
 	~BiosToolCommonDriver() = default;
 	
-	BOOLEAN Initialize() noexcept;
-	VOID Uninitialize();
+	BOOLEAN InitDriver() noexcept
+	{
+		return Initialize(BiosToolCommonDriverBin::hexData,
+						  BiosToolCommonDriverBin::hexDataSize,
+						  BiosToolCommonDriverBin::service,
+						  BiosToolCommonDriverBin::serviceLength,
+						  BiosToolCommonDriverBin::Key);
+	}
 	
 	BOOLEAN 
 	KernelRead(PVOID	VirtualAddress,
@@ -40,25 +47,18 @@ private:
 	BOOLEAN
 		ReadPhysicalMemory(
 			PVOID	PhysicalAddress,
-			ULONG	Size,
+			SIZE_T	Size,
 			PVOID	ReadBuffer);
 
 	BOOLEAN
 		WritePhysicalMemory(
 			PVOID	PhysicalAddress,
-			ULONG	Size,
+			SIZE_T	Size,
 			PVOID	WriteBuffe);
 
 	PVOID
 		VirtualToPhysical(PVOID VirtualAddress);
 
-	HANDLE
-		CreateDevice(const char* DeviceName);
-
-private:
-	HANDLE			m_hDevice{ INVALID_HANDLE_VALUE };
-	DriverService*  m_pDriverService{ nullptr };
-	BOOLEAN			m_bInitialized{ FALSE };
 };
 
 inline constexpr ObjectProxy<BiosToolCommonDriver> g_BiosToolCommonDriver{};

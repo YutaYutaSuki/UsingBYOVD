@@ -93,8 +93,7 @@ auto
 DriverLoader::GetKernelBase() -> ULONG64
 {
 	auto enableDebugPrivilege = []() -> BOOLEAN {
-		BOOLEAN bResult{ FALSE };
-		NTSTATUS status = Utils::RtlAdjustPrivilege(20/*SeDebugPrivilege*/, TRUE, FALSE, nullptr);
+		NTSTATUS status = Utils::RtlAdjustPrivilege(20/*SeDebugPrivilege*/);
 		if (!NT_SUCCESS(status))
 		{
 			LOG("[-] Failed to adjust privilege. Error code: 0x" << std::hex << status << " line = " << __LINE__);

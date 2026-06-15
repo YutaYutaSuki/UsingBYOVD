@@ -1,6 +1,7 @@
 #include "GGProtect64.h"
 #include "FileUtils.hpp"
 #include "GGProtect64Bin.hpp"
+#include "Log.hpp"
 
 BOOLEAN
 GGProtect64::Initialize() noexcept

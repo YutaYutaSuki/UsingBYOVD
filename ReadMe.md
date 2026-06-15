@@ -61,3 +61,9 @@ dmp file
 **Update DriverSelector**  
 **Just switch the BYOVD driver you want to use in the DriverSelector file.**   
 只要在文件DriverSelector切换你想使用的漏洞驱动即可，注意相应的类型。  
+
+
+## Syscall
+使用了[SysWhispers4](https://github.com/JoasASantos/SysWhispers4)加入到了本项目
+
+Special thanks to the author of [SysWhispers4](https://github.com/JoasASantos/SysWhispers4) for sharing this project.

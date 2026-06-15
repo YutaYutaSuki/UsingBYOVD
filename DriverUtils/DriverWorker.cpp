@@ -7,7 +7,7 @@ static BOOLEAN g_bKiller{FALSE};
 auto
 DriverWorker::InitializeDriver() -> BOOLEAN
 {
-	return CurrentProvider()->Initialize();
+	return CurrentProvider()->InitDriver();
 }
 
 auto

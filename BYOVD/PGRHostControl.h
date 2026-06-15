@@ -5,6 +5,7 @@
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
+#include "PGRHostControlBin.hpp"
 
 typedef struct _MapRequest
 {
@@ -32,8 +33,14 @@ public:
 	}
 	~PGRHostControl() = default;
 
-	BOOLEAN Initialize() noexcept;
-	VOID Uninitialize();
+	BOOLEAN InitDriver() noexcept
+	{
+		return Initialize(PGRHostControlBin::hexData,
+						  PGRHostControlBin::hexSize,
+						  PGRHostControlBin::service,
+						  PGRHostControlBin::serviceLength,
+						  PGRHostControlBin::Key);
+	}
 
 	BOOLEAN
 		KernelRead(PVOID	VirtualAddress,
@@ -58,15 +65,6 @@ private:
 
 	PVOID
 		VirtualToPhysical(PVOID VirtualAddress);
-
-
-	HANDLE
-		CreateDevice(const char* DeviceName);
-
-private:
-	HANDLE			m_hDevice{ INVALID_HANDLE_VALUE };
-	BOOLEAN			m_bInitialized{ FALSE };
-	DriverService*  m_pDriverService{ nullptr };
 };
 
 

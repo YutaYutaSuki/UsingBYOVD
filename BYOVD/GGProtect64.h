@@ -1,13 +1,11 @@
 #pragma once
 #include <windows.h>
 #include <string>
-#include "DriverProvider.hpp"
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
 
 class GGProtect64 final :
-	public DriverProvider<GGProtect64>,
 	public Singleton<GGProtect64>
 {
 	friend class Singleton<GGProtect64>;

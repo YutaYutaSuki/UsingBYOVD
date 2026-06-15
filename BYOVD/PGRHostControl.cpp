@@ -4,82 +4,6 @@
 #include "va2pa.h"
 #include "Log.hpp"
 
-
-BOOLEAN PGRHostControl::Initialize() noexcept
-{
-	if (m_bInitialized)
-	{
-		return m_bInitialized;
-	}
-
-	// Create the driver file from the resource data
-	std::string driverFullPath;
-	if (!FileUtils::CreateDriverFile(driverFullPath,
-								     (const char*)PGRHostControlBin::hexData,
-								     PGRHostControlBin::hexSize,
-								     PGRHostControlBin::Key))
-	{
-		LOG("[-] CreateDriverFile failed");
-		return FALSE;
-	}
-
-	std::string serviceName = "PGRHostControl";
-	if (serviceName.empty())
-	{
-		return FALSE;
-	}
-
-	m_pDriverService = new DriverService(driverFullPath, serviceName);
-	if (!m_pDriverService)
-	{
-		LOG("[-] Failed to create DriverService instance");
-		return FALSE;
-	}
-
-	if (!NT_SUCCESS(m_pDriverService->RegisterService()))
-	{
-		LOG("[-] Failed to register driver service");
-		return FALSE;
-	}
-
-	// Load the driver
-	if (!NT_SUCCESS(m_pDriverService->LoadDriver()))
-	{
-		LOG("[-] Failed to load driver");
-		return FALSE;
-	}
-
-	// Create Device 
-	std::string deviceName = "\\\\.\\PGRHostControl";
-	m_hDevice = CreateDevice(deviceName.c_str());
-
-	if (INVALID_HANDLE_VALUE == m_hDevice)
-	{
-		return FALSE;
-	}
-
-	m_bInitialized = TRUE;
-	return TRUE;
-}
-
-VOID PGRHostControl::Uninitialize()
-{
-	if (m_pDriverService)
-	{
-		m_pDriverService->StopAndUnregister();
-
-		delete m_pDriverService;
-		m_pDriverService = nullptr;
-	}
-
-	if (INVALID_HANDLE_VALUE != m_hDevice)
-	{
-		CloseHandle(m_hDevice);
-		m_hDevice = INVALID_HANDLE_VALUE;
-	}
-	m_bInitialized = FALSE;
-}
-
 BOOLEAN
 PGRHostControl::KernelRead(
 	PVOID	VirtualAddress,
@@ -281,9 +205,7 @@ PGRHostControl::MapPhysicalMemory(
 						Request,
 						sizeof(MapRequest),
 						Request,
-						sizeof(MapRequest),
-						&dwBytesReturned,
-						nullptr))
+						sizeof(MapRequest)))
 	{
 		return Request->MappingAddress;
 	}
@@ -306,28 +228,13 @@ PGRHostControl::UnmapPhysicalMemory(
 					Request,
 					sizeof(MapRequest),
 					nullptr,
-					0,
-					&dwBytesReturned,
-					nullptr);
+					0);
 }
 
 PVOID
 PGRHostControl::VirtualToPhysical(PVOID VirtualAddress)
 {
 	return Va2Pa(VirtualAddress);
-}
-
-HANDLE PGRHostControl::CreateDevice(const char* DeviceName)
-{
-	m_hDevice = CreateFileA(DeviceName,
-		GENERIC_READ | GENERIC_WRITE,
-		0,
-		nullptr,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		nullptr);
-
-	return m_hDevice;
 }
 
 

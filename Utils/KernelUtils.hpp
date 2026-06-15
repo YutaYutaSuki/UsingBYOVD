@@ -16,6 +16,9 @@
 
 
 constexpr static ULONG Tag = 'mmpM';
+#ifndef SystemModuleInformation
+#define SystemModuleInformation 11
+#endif
 
 class KernelUtils final : public Singleton<KernelUtils>
 {

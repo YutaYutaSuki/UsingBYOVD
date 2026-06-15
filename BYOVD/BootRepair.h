@@ -7,7 +7,6 @@
 #include "ObjectProxy.hpp"
 
 class BootRepair final :
-	public DriverProvider<BootRepair>,
 	public Singleton<BootRepair>
 {
 	friend class Singleton<BootRepair>;

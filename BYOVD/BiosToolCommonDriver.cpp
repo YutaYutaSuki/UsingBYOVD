@@ -1,90 +1,8 @@
 #include "BiosToolCommonDriver.h"
-#include "FileUtils.hpp"
-#include "BiosToolCommonDriverBin.hpp"
-#include "Log.hpp"
 #include "va2pa.h"
+#include "Log.hpp"
 
 
-BOOLEAN BiosToolCommonDriver::Initialize() noexcept
-{
-	if (m_bInitialized)
-	{
-		return TRUE;
-	}
-
-	// Create the driver file from the resource data
-	std::string driverFullPath;
-	if (!FileUtils::CreateDriverFile(driverFullPath,
-									 (const char*)BiosToolCommonDriverBin::hexData,
-									 BiosToolCommonDriverBin::hexDataSize,
-									 BiosToolCommonDriverBin::Key))
-	{
-		LOG("[-] CreateDriverFile failed");
-		return FALSE;
-	}
-
-	// Register and start the driver service
-	// std::string strServiceName{ HwRwSys::service };
-
-	// Get the device name from the resource data
-	std::string serviceName = FileUtils::GetServiceName(BiosToolCommonDriverBin::service,
-														BiosToolCommonDriverBin::serviceLength,
-														BiosToolCommonDriverBin::Key);
-	if (serviceName.empty())
-	{
-		return FALSE;
-	}
-
-	m_pDriverService = new DriverService(driverFullPath, serviceName);
-	if (!m_pDriverService)
-	{
-		LOG("[-] Failed to create DriverService instance");
-		return FALSE;
-	}
-
-	if (!NT_SUCCESS(m_pDriverService->RegisterService()))
-	{
-		LOG("[-] Failed to register driver service");
-		return FALSE;
-	}
-
-	// Load the driver
-	if (!NT_SUCCESS(m_pDriverService->LoadDriver()))
-	{
-		LOG("[-] Failed to load driver");
-		return FALSE;
-	}
-
-	// Create Device 
-	std::string_view strDeviceName = "\\\\.\\BiosToolCommonDriver";
-	m_hDevice = CreateDevice(strDeviceName.data());
-	if (INVALID_HANDLE_VALUE == m_hDevice)
-	{
-		return FALSE;
-	}
-
-	m_bInitialized = TRUE;
-	return TRUE;
-}
-
-VOID BiosToolCommonDriver::Uninitialize()
-{
-	if (m_pDriverService)
-	{
-		m_pDriverService->StopAndUnregister();
-
-		delete m_pDriverService;
-		m_pDriverService = nullptr;
-	}
-
-	if (INVALID_HANDLE_VALUE != m_hDevice)
-	{
-		CloseHandle(m_hDevice);
-		m_hDevice = INVALID_HANDLE_VALUE;
-	}
-
-	m_bInitialized = FALSE;
-}
 
 BOOLEAN
 BiosToolCommonDriver::KernelRead(
@@ -104,14 +22,12 @@ BiosToolCommonDriver::KernelRead(
 		PVOID pPhysicalAddress = VirtualToPhysical(VirtualAddress);
 		if (!pPhysicalAddress)
 		{
-
-			LOG("[-] Failed to translate virtual address to physical address using MemoryMap.");
+			LOG(std::format("[-] Failed to translate virtual address{} to physical address using MemoryMap. line {}", VirtualAddress, __LINE__));
 			return FALSE;
-
 		}
 
 		bRet = ReadPhysicalMemory(reinterpret_cast<PVOID>(pPhysicalAddress),
-								  static_cast<ULONG>(ReadSize),
+								  ReadSize,
 								  ReadBuffer);
 		if (!bRet)
 		{
@@ -126,13 +42,16 @@ BiosToolCommonDriver::KernelRead(
 		ULONG NumberOfPages = static_cast<ULONG>((ReadSize + 0xFFF) / 0x1000);
 		for (auto i{ 0u }; i < NumberOfPages; ++i)
 		{
-			PVOID pPhysicalAddress = VirtualToPhysical(reinterpret_cast<PUCHAR>(VirtualAddress) + i * 0x1000);
+			PVOID pTmpVa = reinterpret_cast<PUCHAR>(VirtualAddress) + i * 0x1000;
+
+			PVOID pPhysicalAddress = VirtualToPhysical(pTmpVa);
 			if (!pPhysicalAddress)
 			{
-
-				LOG("[-] Failed to translate virtual address to physical address using MemoryMap.");
+				LOG(std::format("[-] Failed to translate virtual address: {} to physical address using MemoryMap. line {}, index: {}",
+								pTmpVa,
+								__LINE__,
+								i));
 				return FALSE;
-
 			}
 			if (i != NumberOfPages - 1)
 			{
@@ -163,9 +82,9 @@ BiosToolCommonDriver::KernelRead(
 
 BOOLEAN
 BiosToolCommonDriver::KernelWrite(
-	PVOID VirtualAddress,
-	PVOID WriteBuffer,
-	SIZE_T WriteSize)
+	PVOID	VirtualAddress,
+	PVOID	WriteBuffer,
+	SIZE_T	WriteSize)
 {
 	if (!VirtualAddress || !WriteBuffer || !WriteSize || !m_bInitialized)
 	{
@@ -183,13 +102,13 @@ BiosToolCommonDriver::KernelWrite(
 		PVOID pPhysicalAddress = VirtualToPhysical(VirtualAddress);
 		if (!pPhysicalAddress)
 		{
-
-			LOG("[-] Failed to translate virtual address to physical address using MemoryMap.");
+			LOG(std::format("[-] Failed to translate virtual address{} to physical address using MemoryMap.", VirtualAddress));
 			return FALSE;
-
 		}
 
-		bRet = WritePhysicalMemory(reinterpret_cast<PVOID>(pPhysicalAddress), static_cast<ULONG>(WriteSize), WriteBuffer);
+		bRet = WritePhysicalMemory(reinterpret_cast<PVOID>(pPhysicalAddress),
+								   WriteSize,
+								   WriteBuffer);
 	}
 	else
 	{
@@ -200,10 +119,8 @@ BiosToolCommonDriver::KernelWrite(
 			PVOID pPhysicalAddress = VirtualToPhysical(reinterpret_cast<PUCHAR>(VirtualAddress) + i * 0x1000);
 			if (!pPhysicalAddress)
 			{
-
-				LOG("[-] Failed to translate virtual address to physical address using MemoryMap.");
+				LOG(std::format("[-] Failed to translate virtual address{} to physical address using MemoryMap. line {}", VirtualAddress, __LINE__));
 				return FALSE;
-
 			}
 			if (i != NumberOfPages - 1)
 			{
@@ -233,9 +150,9 @@ BiosToolCommonDriver::KernelWrite(
 
 BOOLEAN
 BiosToolCommonDriver::ReadPhysicalMemory(
-	PVOID PhysicalAddress,
-	ULONG Size,
-	PVOID ReadBuffer)
+	PVOID	PhysicalAddress,
+	SIZE_T	Size,
+	PVOID	ReadBuffer)
 {
 	if (!PhysicalAddress || !ReadBuffer || !Size)
 	{
@@ -264,15 +181,12 @@ BiosToolCommonDriver::ReadPhysicalMemory(
 
 		unsigned char tempBuffer[0x1008] = { 0 };
 
-		DWORD dwBytesReturned = 0;
 		bRet = DeviceIoControl(m_hDevice,
 							   IOCTL_READ_PHYSICAL,
 							   &ReadRequest,
 							   sizeof(ReadRequest),
 							   tempBuffer,
-							   sizeof(tempBuffer),
-							   &dwBytesReturned,
-							   nullptr);
+							   sizeof(tempBuffer));
 		if (!bRet)
 		{
 			LOG("[-] Failed to read physical memory. Error code: " << GetLastError());
@@ -294,13 +208,13 @@ BiosToolCommonDriver::ReadPhysicalMemory(
 BOOLEAN
 BiosToolCommonDriver::WritePhysicalMemory(
 	PVOID PhysicalAddress,
-	ULONG Size,
-	PVOID WriteBuffe)
+	SIZE_T Size,
+	PVOID WriteBuffer)
 {
-	if (!PhysicalAddress || !WriteBuffe || !Size)
+	if (!PhysicalAddress || !WriteBuffer || !Size)
 	{
 		return FALSE;
-	}
+	}	
 
 	struct
 	{
@@ -310,20 +224,17 @@ BiosToolCommonDriver::WritePhysicalMemory(
 		PVOID	PhysicalAddress;
 	}WriteRequest;
 
-	WriteRequest.Size = Size;
-	WriteRequest.Data = (PUCHAR)WriteBuffe;
+	WriteRequest.Size = static_cast<ULONG>(Size);
+	WriteRequest.Data = (PUCHAR)WriteBuffer;
 	WriteRequest.PhysicalAddress = PhysicalAddress;
 	WriteRequest.Padding = 0;
 
-	DWORD dwBytesReturned = 0;
 	auto bRet = DeviceIoControl(m_hDevice,
 								IOCTL_WRITE_PHYSICAL,
 								&WriteRequest,
 								sizeof(WriteRequest),
 								&WriteRequest,
-								sizeof(WriteRequest),
-								&dwBytesReturned,
-								nullptr);
+								sizeof(WriteRequest));
 
 	if (!bRet)
 	{
@@ -349,36 +260,23 @@ BiosToolCommonDriver::VirtualToPhysical(PVOID VirtualAddress)
 	} Request;
 
 	Request.VirtualAddress = VirtualAddress;
+	Request.PhysicalAddress = nullptr;
 
-	DWORD dwBytesReturned = 0;
 	auto bRet = DeviceIoControl(m_hDevice,
 								IOCTL_VIRTUAL2PHYSICAL,
 								&Request,
 								sizeof(Request),
 								&Request,
-								sizeof(Request),
-								&dwBytesReturned,
-								nullptr);
-	if (!bRet || 0 == Request.PhysicalAddress)
+								sizeof(Request));
+	if (!bRet || !Request.PhysicalAddress)
 	{
 		LOG("[-] Failed to translate virtual address to physical address. Error code: " << GetLastError());
-		
-		return Va2Pa(VirtualAddress);
+
+
+		// Get Physical Address Again using Va2Pa
+		Request.PhysicalAddress = Va2Pa(VirtualAddress);
+		return Request.PhysicalAddress;
 	}
 
 	return Request.PhysicalAddress;
-}
-
-HANDLE
-BiosToolCommonDriver::CreateDevice(const char* DeviceName)
-{
-	m_hDevice = CreateFileA(DeviceName,
-							GENERIC_READ | GENERIC_WRITE,
-							0,
-							nullptr,
-							OPEN_EXISTING,
-							FILE_ATTRIBUTE_NORMAL,
-							nullptr);
-
-	return m_hDevice;
 }

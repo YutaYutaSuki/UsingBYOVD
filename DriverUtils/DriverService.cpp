@@ -1,3 +1,5 @@
+#include <windows.h>
+#include <winternl.h>
 #include "DriverService.hpp"
 #include "Log.hpp"
 #include <string>
@@ -5,12 +7,13 @@
 #include <memory>
 #include <filesystem>
 
+#pragma comment(lib, "ntdll.lib")
+
 namespace fs = std::filesystem;
 
 NTSTATUS DriverService::EnablePrivilege()
 {
-	BOOLEAN		bEnabled{ FALSE };
-	return Utils::RtlAdjustPrivilege(SE_LOAD_DRIVER_PRIVILEGE, TRUE, FALSE, &bEnabled);
+	return Utils::RtlAdjustPrivilege(SE_LOAD_DRIVER_PRIVILEGE);
 }
 
 NTSTATUS DriverService::LoadDriver(PUNICODE_STRING DriverServiceName)
