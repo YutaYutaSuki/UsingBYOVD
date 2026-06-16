@@ -158,6 +158,7 @@
     <ClInclude Include="BYOVD\PGRHostControlBin.hpp" />
     <ClInclude Include="BYOVD\ProcessCtr.h" />
     <ClInclude Include="BYOVD\ProcessCtrBin.hpp" />
+    <ClInclude Include="DriverUtils\DriverKiller.hpp" />
     <ClInclude Include="DriverUtils\DriverLoader.h" />
     <ClInclude Include="DriverUtils\DriverProvider.hpp" />
     <ClInclude Include="DriverUtils\DriverSelector.hpp" />
@@ -193,10 +194,7 @@
     <ClCompile Include="DriverUtils\DriverWorker.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Singleton.cpp" />
-    <ClCompile Include="Syscalls\SCSyscalls.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Syscalls\SCSyscalls.c" />
     <ClCompile Include="Utils\FileUtils.cpp" />
     <ClCompile Include="Utils\KernelUtils.cpp" />
     <ClCompile Include="Utils\PEUtils.cpp" />
@@ -209,11 +207,7 @@
     <Image Include="BinaryEvil.ico" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Syscalls\SCSyscall.asm">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </MASM>
+    <MASM Include="Syscalls\SCSyscallsMscc.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

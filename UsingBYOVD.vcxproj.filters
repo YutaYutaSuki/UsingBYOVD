@@ -123,6 +123,9 @@
     <ClInclude Include="Syscalls\SCSyscalls.h">
       <Filter>Syscalls</Filter>
     </ClInclude>
+    <ClInclude Include="DriverUtils\DriverKiller.hpp">
+      <Filter>DriverUtils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -191,7 +194,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Syscalls\SCSyscall.asm">
+    <MASM Include="Syscalls\SCSyscallsMscc.asm">
       <Filter>Syscalls</Filter>
     </MASM>
   </ItemGroup>

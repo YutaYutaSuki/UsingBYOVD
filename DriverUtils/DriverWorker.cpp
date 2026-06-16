@@ -36,7 +36,7 @@ DriverWorker::Write(
 
 auto DriverWorker::KillerInit()->BOOLEAN
 {
-	auto bResut = CurrentKiller()->Initialize();
+	auto bResut = CurrentKiller()->InitKiller();
 	if (!bResut)
 	{
 		return FALSE;
@@ -51,13 +51,8 @@ auto DriverWorker::KillerInit()->BOOLEAN
 	return FALSE;
 }
 
-
-
 auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN
 {
-
-	
-
 	auto bResult{ FALSE };
 
 	// check it again
@@ -70,7 +65,7 @@ auto DriverWorker::Kill(ULONG Pid) ->BOOLEAN
 
 	if (Pid > 4)
 	{
-		LOG("Kill pid = ") << Pid << std::endl;;
+		LOG("Kill pid = " << Pid << std::endl);
 		bResult = CurrentKiller()->KillProcess(Pid);
 
 	}

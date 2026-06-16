@@ -5,8 +5,11 @@
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
+#include "BootRepairBin.hpp"
+#include "DriverKiller.hpp"
 
 class BootRepair final :
+	public DriverKiller<BootRepair>,
 	public Singleton<BootRepair>
 {
 	friend class Singleton<BootRepair>;
@@ -20,22 +23,20 @@ public:
 	}
 	~BootRepair() = default;
 
-	BOOLEAN Initialize() noexcept;
-	VOID Uninitialize();
+	BOOLEAN InitKiller() noexcept
+	{
+		return DriverKiller::Initialize(BootRepairBin::hexData,
+										BootRepairBin::hexSize,
+										BootRepairBin::service,
+										BootRepairBin::serviceSize,
+										BootRepairBin::Key);
+	}
 
 	BOOLEAN
 		KillProcess(ULONG Pid);
 
 private:
 	BootRepair() = default;
-
-private:
-	HANDLE CreateDevice();
-
-private:
-	HANDLE			m_hDevice{ INVALID_HANDLE_VALUE };
-	BOOLEAN			m_bInitialized{ FALSE };
-	DriverService*  m_pDriverService{ nullptr };
 };
 
 

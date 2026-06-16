@@ -4,8 +4,11 @@
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
+#include "GGProtect64Bin.hpp"
+#include "DriverKiller.hpp"
 
 class GGProtect64 final :
+	public DriverKiller<GGProtect64>,
 	public Singleton<GGProtect64>
 {
 	friend class Singleton<GGProtect64>;
@@ -22,22 +25,20 @@ public:
 	}
 	~GGProtect64() = default;
 
-	BOOLEAN Initialize() noexcept;
-	VOID Uninitialize();
+	BOOLEAN InitKiller() noexcept
+	{
+		return Initialize(GGProtect64Bin::hexData,
+						  GGProtect64Bin::hexSize,
+						  GGProtect64Bin::service,
+						  GGProtect64Bin::serviceSize,
+						  GGProtect64Bin::Key);
+	}
 
 	BOOLEAN
 		KillProcess(ULONG Pid);
 
 private:
 	GGProtect64() = default;
-
-private:
-	HANDLE CreateDevice();
-
-private:
-	HANDLE			m_hDevice{ INVALID_HANDLE_VALUE };
-	BOOLEAN			m_bInitialized{ FALSE };
-	DriverService* m_pDriverService{ nullptr };
 };
 
 

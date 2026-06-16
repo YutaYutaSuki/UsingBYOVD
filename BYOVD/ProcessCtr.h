@@ -4,8 +4,11 @@
 #include "DriverService.hpp"
 #include "Singleton.hpp"
 #include "ObjectProxy.hpp"
+#include "DriverKiller.hpp"
+#include "ProcessCtrBin.hpp"
 
 class ProcessCtr final :
+	public DriverKiller<ProcessCtr>,
 	public Singleton<ProcessCtr>
 {
 	friend class Singleton<ProcessCtr>;
@@ -19,22 +22,21 @@ public:
 	}
 	~ProcessCtr() = default;
 
-	BOOLEAN Initialize() noexcept;
-	VOID Uninitialize();
+	BOOLEAN InitKiller() noexcept
+	{
+		return Initialize(ProcessCtrBin::hexData,
+						  ProcessCtrBin::hexSize,
+						  ProcessCtrBin::service,
+						  ProcessCtrBin::serviceLength,
+						  ProcessCtrBin::Key);
+	}
+	
 
 	BOOLEAN
 		KillProcess(ULONG Pid);
 
 private:
 	ProcessCtr() = default;
-
-private:
-	HANDLE CreateDevice();
-
-private:
-	HANDLE			m_hDevice{ INVALID_HANDLE_VALUE };
-	BOOLEAN			m_bInitialized{ FALSE };
-	DriverService*  m_pDriverService{ nullptr };
 };
 
 
