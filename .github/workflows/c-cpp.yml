@@ -10,7 +10,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true" # 顺手帮你屏蔽底层的 Node 警告
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 jobs:
   build:
@@ -26,9 +26,9 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    # 关键点修复：显式指定 WindowsTargetPlatformVersion=10.0.22621.0
+    # 核心修复：通过 "$(LatestTargetPlatformVersion)" 让 MSBuild 自动调用系统已安装的最新 SDK 路径
     - name: Build Solution with MSBuild
-      run: msbuild UsingBYOVD.sln /p:Configuration=Release /p:Platform=x64 /p:WindowsTargetPlatformVersion=10.0.22621.0 /p:TreatWarningsAsErrors=false
+      run: msbuild UsingBYOVD.sln /p:Configuration=Release /p:Platform=x64 /p:WindowsTargetPlatformVersion="$(LatestTargetPlatformVersion)" /p:TreatWarningsAsErrors=false
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
