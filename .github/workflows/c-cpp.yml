@@ -1,0 +1,53 @@
+name: Build and Release UsingBYOVD
+
+# 1. 触发条件：当推送到 main 分支，或者推送到任何以 v 开头的标签（如 v1.0.0）时触发
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags:
+      - "v*" 
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    # 关键：赋予 Actions 写入和创建 Release 的权限
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v5
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build Solution with MSBuild
+      run: msbuild UsingBYOVD.sln /p:Configuration=Release /p:Platform=x64 /p:WindowsTargetPlatformVersion= /p:TreatWarningsAsErrors=false
+
+    # 2. 上传备份（可选，Actions 运行详情里仍保留一份临时产物）
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: UsingBYOVD-Release-x64
+        path: x64/Release/*.exe
+
+    # 3. 核心步骤：如果是通过 tag 触发的，就自动发布到 Release
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/') # 仅在有 Tag 时执行此步骤
+      uses: softprops/action-gh-release@v2
+      with:
+        # 指定要上传的文件，支持通配符
+        files: x64/Release/*.exe
+        # 自动从小标（Tag）生成 Release 标题
+        name: "Release ${{ github.ref_name }}"
+        # 是否是草稿 (draft) 或 预发布 (prerelease)
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 自动调用 GitHub 提供的免密 Token
