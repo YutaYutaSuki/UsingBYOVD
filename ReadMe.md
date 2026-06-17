@@ -70,3 +70,4 @@ Special thanks to the author of [SysWhispers4](https://github.com/JoasASantos/Sy
 
 
 # 个人DIY
+修改了UTF-8编码，解决了运行时中文乱码的问题，修改了提权逻辑，如果提权位输入PID，则新开启SYSTEM权限的cmd，感谢原作者提供优质代码以供参考学习。
