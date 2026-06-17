@@ -163,7 +163,7 @@ GetLsassPid()
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnapshot == INVALID_HANDLE_VALUE)
 	{
-		printf("CreateToolhelp32Snapshot Ê§°Ü: %lu\n", GetLastError());
+		printf("CreateToolhelp32Snapshot å¤±è´¥: %lu\n", GetLastError());
 		return 0;
 	}
 
@@ -176,11 +176,11 @@ GetLsassPid()
 	{
 		do
 		{
-			// ²»Çø·Ö´óĞ¡Ğ´±È½Ï½ø³ÌÃû
+			// ä¸åŒºåˆ†å¤§å°å†™æ¯”è¾ƒè¿›ç¨‹å
 			if (_tcsicmp(pe32.szExeFile, _T("lsass.exe")) == 0)
 			{
 				lsassPid = pe32.th32ProcessID;
-				break;  // lsass Í¨³£Ö»ÓĞÒ»¸öÊµÀı
+				break;  // lsass é€šå¸¸åªæœ‰ä¸€ä¸ªå®ä¾‹
 			}
 		} while (Process32Next(hSnapshot, &pe32));
 	}
@@ -361,13 +361,13 @@ $$$$$$$  | $$ | $$ |  $$ | \$$$$$$$ | $$ |       \$$$$$$$ |      $$$$$$$$$ \$  /
 		else if (arg == "-h" || arg == "--help")
 		{
 			SetConsoleTextAttribute(hConsole, 13);  // 5 13 pink
-			std::cout << "ÓÃ·¨:\n"
-				<< "  --ppl -add <PID>      ÌáÉıÎª PPL\n"
-				<< "  --ppl -rve <PID>      ÒÆ³ı PPL ±£»¤\n"
-				<< "  --PriEsc <PID>        È¨ÏŞÌáÉı\n"
-				<< "  --KillProcess <PID>   ½áÊø½ø³Ì\n"
-				<< "  --KA					½áÊøÒÑÖªËùÓĞ·´²¡¶¾½ø³Ì\n"
-				<< "  --map <Â·¾¶>           Ó³ÉäÇı¶¯\n"
+			std::cout << "ç”¨æ³•:\n"
+				<< "  --ppl -add <PID>      æå‡ä¸º PPL\n"
+				<< "  --ppl -rve <PID>      ç§»é™¤ PPL ä¿æŠ¤\n"
+				<< "  --PriEsc <PID>        æƒé™æå‡\n"
+				<< "  --KillProcess <PID>   ç»“æŸè¿›ç¨‹\n"
+				<< "  --KA					ç»“æŸå·²çŸ¥æ‰€æœ‰åç—…æ¯’è¿›ç¨‹\n"
+				<< "  --map <è·¯å¾„>           æ˜ å°„é©±åŠ¨\n"
 				<< "  --dmp                 dmp lsass\n";
 			SetConsoleTextAttribute(hConsole, 7);
 			return 0;
