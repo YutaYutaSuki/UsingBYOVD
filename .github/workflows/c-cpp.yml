@@ -26,9 +26,13 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    # 核心修复：通过 "$(LatestTargetPlatformVersion)" 让 MSBuild 自动调用系统已安装的最新 SDK 路径
+    # 第一步：让 MSBuild 自身去嗅探并对齐系统里的 SDK 文件夹（避开 PowerShell 命令行解析）
+    - name: Retarget Solution SDK
+      run: msbuild UsingBYOVD.sln /t:RetargetSelection /p:Configuration=Release /p:Platform=x64
+
+    # 第二步：安全编译
     - name: Build Solution with MSBuild
-      run: msbuild UsingBYOVD.sln /p:Configuration=Release /p:Platform=x64 /p:WindowsTargetPlatformVersion="$(LatestTargetPlatformVersion)" /p:TreatWarningsAsErrors=false
+      run: msbuild UsingBYOVD.sln /p:Configuration=Release /p:Platform=x64 /p:TreatWarningsAsErrors=false
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
