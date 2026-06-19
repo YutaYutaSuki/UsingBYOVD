@@ -126,6 +126,12 @@
     <ClInclude Include="DriverUtils\DriverKiller.hpp">
       <Filter>DriverUtils</Filter>
     </ClInclude>
+    <ClInclude Include="BYOVD\WinMsrDev.h">
+      <Filter>BYOVD</Filter>
+    </ClInclude>
+    <ClInclude Include="BYOVD\WinMsrDevBin.hpp">
+      <Filter>BYOVD</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -181,6 +187,9 @@
     </ClCompile>
     <ClCompile Include="Syscalls\SCSyscalls.c">
       <Filter>Syscalls</Filter>
+    </ClCompile>
+    <ClCompile Include="BYOVD\WinMsrDev.cpp">
+      <Filter>BYOVD</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
