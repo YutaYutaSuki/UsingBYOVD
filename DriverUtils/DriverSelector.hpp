@@ -6,6 +6,7 @@
 #include "CorMem.h"
 #include "PGRHostControl.h"
 #include "BiosToolCommonDriver.h"
+#include "WinMsrDev.h"
 
 // Killer
 #include "BootRepair.h"
@@ -69,13 +70,15 @@ namespace DriverWorker
 	{
 		CorMem,
 		PGRHostControl,
-		BiosToolCommonDriver
+		BiosToolCommonDriver,
+		WinMsrDev
 	};
 
 	static std::any Providers[] = {
 		std::any(std::addressof(CorMem::Instance())),
 		std::any(std::addressof(PGRHostControl::Instance())),
-		std::any(std::addressof(BiosToolCommonDriver::Instance()))
+		std::any(std::addressof(BiosToolCommonDriver::Instance())),
+		std::any(std::addressof(WinMsrDev::Instance()))
 	};
 
 	template <ProviderType _Type>
@@ -97,6 +100,12 @@ namespace DriverWorker
 	struct GetProviderImpl<ProviderType::BiosToolCommonDriver>
 	{
 		using Type = std::add_pointer_t<BiosToolCommonDriver>;
+	};
+
+	template <>
+	struct GetProviderImpl<ProviderType::WinMsrDev>
+	{
+		using Type = std::add_pointer_t<WinMsrDev>;
 	};
 
 	template <ProviderType _Type>
